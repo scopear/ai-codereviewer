@@ -1,6 +1,6 @@
-# AI Code Reviewer
+# CDS AI Code Reviewer
 
-AI Code Reviewer is a GitHub Action that leverages OpenAI's GPT-4 API to provide intelligent feedback and suggestions on
+CDS AI Code Reviewer is a GitHub Action that leverages OpenAI's GPT-4 API to provide intelligent feedback and suggestions on
 your pull requests. This powerful tool helps improve code quality and saves developers time by automating the code
 review process.
 
@@ -22,7 +22,7 @@ review process.
 3. Create a `.github/workflows/main.yml` file in your repository and add the following content:
 
 ```yaml
-name: AI Code Reviewer
+name: CDS AI Code Reviewer
 
 on:
   pull_request:
@@ -37,8 +37,8 @@ jobs:
       - name: Checkout Repo
         uses: actions/checkout@v3
 
-      - name: AI Code Reviewer
-        uses: your-username/ai-code-reviewer@main
+      - name: CDS AI Code Reviewer
+        uses: cds-snc/cds-ai-code-reviewer@main
         with:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # The GITHUB_TOKEN is there by default so you just need to keep it like it is and not necessarily need to add it as secret as it will throw an error. [More Details](https://docs.github.com/en/actions/security-guides/automatic-token-authentication#about-the-github_token-secret)
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
@@ -46,21 +46,18 @@ jobs:
           exclude: "**/*.json, **/*.md" # Optional: exclude patterns separated by commas
 ```
 
-4. Replace `your-username` with your GitHub username or organization name where the AI Code Reviewer repository is
-   located.
+4. Customize the `exclude` input if you want to ignore certain file patterns from being reviewed.
 
-5. Customize the `exclude` input if you want to ignore certain file patterns from being reviewed.
-
-6. Commit the changes to your repository, and AI Code Reviewer will start working on your future pull requests.
+5. Commit the changes to your repository, and CDS AI Code Reviewer will start working on your future pull requests.
 
 ## How It Works
 
-The AI Code Reviewer GitHub Action retrieves the pull request diff, filters out excluded files, and sends code chunks to
+The CDS AI Code Reviewer GitHub Action retrieves the pull request diff, filters out excluded files, and sends code chunks to
 the OpenAI API. It then generates review comments based on the AI's response and adds them to the pull request.
 
 ## Contributing
 
-Contributions are welcome! Please feel free to submit issues or pull requests to improve the AI Code Reviewer GitHub
+Contributions are welcome! Please feel free to submit issues or pull requests to improve the CDS AI Code Reviewer GitHub
 Action.
 
 Let the maintainer generate the final package (`yarn build` & `yarn package`).
