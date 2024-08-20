@@ -1,4 +1,4 @@
-name: Code Review with OpenAI
+name: CDS Code Review with OpenAI
 on:
   pull_request:
     types:
@@ -12,7 +12,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
       - name: Code Review
-        uses: freeedcom/ai-codereviewer@main
+        uses: cds-snc/cds-ai-codereviewer@main
         with:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
