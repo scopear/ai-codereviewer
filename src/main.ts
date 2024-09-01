@@ -5,14 +5,19 @@ import { Octokit } from "@octokit/rest";
 import parseDiff, { Chunk, File } from "parse-diff";
 import minimatch from "minimatch";
 
+// import { OpenAI as AzureOpenAI } from "@azure/openai";
+
 const GITHUB_TOKEN: string = core.getInput("GITHUB_TOKEN");
 const OPENAI_API_KEY: string = core.getInput("OPENAI_API_KEY");
 const OPENAI_API_MODEL: string = core.getInput("OPENAI_API_MODEL");
+const OPEN_AI_BASE_URL: string | undefined =
+  core.getInput("OPEN_AI_BASE_URL") || undefined; // Keep the default value as undefined instead of empty strings.
 
 const octokit = new Octokit({ auth: GITHUB_TOKEN });
 
 const openai = new OpenAI({
   apiKey: OPENAI_API_KEY,
+  baseURL: OPEN_AI_BASE_URL || undefined,
 });
 
 interface PRDetails {

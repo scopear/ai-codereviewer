@@ -11,6 +11,9 @@ inputs:
     description: "OpenAI API model."
     required: false
     default: "gpt-4"
+  OPEN_AI_BASE_URL:
+    description: "Base URL to the API model (Open AI or Azure portal)."
+    required: false
   exclude:
     description: "Glob patterns to exclude files from the diff analysis"
     required: false
