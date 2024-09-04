@@ -4,20 +4,35 @@ import OpenAI from "openai";
 import { Octokit } from "@octokit/rest";
 import parseDiff, { Chunk, File } from "parse-diff";
 import minimatch from "minimatch";
-
-// import { OpenAI as AzureOpenAI } from "@azure/openai";
+import { Certificate } from "crypto";
 
 const GITHUB_TOKEN: string = core.getInput("GITHUB_TOKEN");
 const OPENAI_API_KEY: string = core.getInput("OPENAI_API_KEY");
 const OPENAI_API_MODEL: string = core.getInput("OPENAI_API_MODEL");
-const OPEN_AI_BASE_URL: string | undefined =
-  core.getInput("OPEN_AI_BASE_URL") || undefined; // Keep the default value as undefined instead of empty strings.
+const OPENAI_API_VERSION: string = core.getInput("OPENAI_API_VERSION");
+const OPENAI_BASE_URL: string = core.getInput("OPENAI_BASE_URL"); // Keep the default value as undefined instead of empty strings.
+
+// Supports HTTP requests debugging via an environment variable.
+const debugHttp: string | undefined = process.env.DEBUG_HTTP;
+if (debugHttp) {
+  // Intercept all HTTP requests
+  const nock = require('nock');
+  nock.recorder.rec({
+    output_objects: true,
+    logging: (content: any) => {
+      console.log('HTTP Request:', content);
+    }
+  });
+  console.log("HTTP calls interception enabled");
+}
 
 const octokit = new Octokit({ auth: GITHUB_TOKEN });
 
 const openai = new OpenAI({
   apiKey: OPENAI_API_KEY,
-  baseURL: OPEN_AI_BASE_URL || undefined,
+  baseURL: OPENAI_BASE_URL,
+  defaultQuery: { "api-version": OPENAI_API_VERSION },
+  defaultHeaders: { "api-key": OPENAI_API_KEY },
 });
 
 interface PRDetails {
@@ -92,9 +107,8 @@ function createPrompt(file: File, chunk: Chunk, prDetails: PRDetails): string {
 - Use the given description only for the overall context and only comment the code.
 - IMPORTANT: NEVER suggest adding comments to the code.
 
-Review the following code diff in the file "${
-    file.to
-  }" and take the pull request title and description into account when writing the response.
+Review the following code diff in the file "${file.to
+    }" and take the pull request title and description into account when writing the response.
   
 Pull request title: ${prDetails.title}
 Pull request description:
@@ -108,9 +122,9 @@ Git diff to review:
 \`\`\`diff
 ${chunk.content}
 ${chunk.changes
-  // @ts-expect-error - ln and ln2 exists where needed
-  .map((c) => `${c.ln ? c.ln : c.ln2} ${c.content}`)
-  .join("\n")}
+      // @ts-expect-error - ln and ln2 exists where needed
+      .map((c) => `${c.ln ? c.ln : c.ln2} ${c.content}`)
+      .join("\n")}
 \`\`\`
 `;
 }
@@ -132,7 +146,7 @@ async function getAIResponse(prompt: string): Promise<Array<{
     const response = await openai.chat.completions.create({
       ...queryConfig,
       // return JSON if the model supports it:
-      ...(OPENAI_API_MODEL === "gpt-4-1106-preview"
+      ...(OPENAI_API_MODEL === "gpt-4-1106-preview" || OPENAI_API_MODEL === "gpt-4o"
         ? { response_format: { type: "json_object" } }
         : {}),
       messages: [
@@ -215,7 +229,7 @@ async function main() {
 
     diff = String(response.data);
   } else {
-    console.log("Unsupported event:", process.env.GITHUB_EVENT_NAME);
+    console.log(`Unsupported event: action=${eventData.action}, process.env.GITHUB_EVENT_NAME=${process.env.GITHUB_EVENT_NAME}`);
     return;
   }
 
@@ -239,12 +253,13 @@ async function main() {
 
   const comments = await analyzeCode(filteredDiff, prDetails);
   if (comments.length > 0) {
-    await createReviewComment(
-      prDetails.owner,
-      prDetails.repo,
-      prDetails.pull_number,
-      comments
-    );
+    // await createReviewComment(
+    //   prDetails.owner,
+    //   prDetails.repo,
+    //   prDetails.pull_number,
+    //   comments
+    // );
+    await console.log("Comments:", comments);
   }
 }
 
