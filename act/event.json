@@ -1,10 +1,10 @@
 {
-    "action": "opened",
-    "repository": {
-        "owner": {
-            "login": "cds-snc"
-        },
-        "name": "cds-ai-codereviewer"
+  "action": "opened",
+  "repository": {
+    "owner": {
+      "login": "cds-snc"
     },
-    "number": 3
+    "name": "cds-ai-codereviewer"
+  },
+  "number": 3
 }
