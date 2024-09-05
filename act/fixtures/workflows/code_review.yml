@@ -4,15 +4,18 @@ on:
     types:
       - opened
       - synchronize
+
 permissions: write-all
 jobs:
   code_review:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v2
+        with:
+          path: ./
       - name: Code Review
-        uses: cds-snc/cds-ai-codereviewer@main
+        uses: ./act/fixtures/actions
         with:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}

@@ -1,0 +1,10 @@
+{
+  "action": "opened",
+  "repository": {
+    "owner": {
+      "login": "cds-snc"
+    },
+    "name": "cds-ai-codereviewer"
+  },
+  "number": 3
+}

@@ -1,0 +1,13 @@
+{
+  "name": "Node.js & TypeScript",
+  // Or use a Dockerfile or Docker Compose file. More info: https://containers.dev/guide/dockerfile
+  "image": "mcr.microsoft.com/devcontainers/typescript-node:1-22-bookworm",
+  "features": {
+    "ghcr.io/devcontainers/features/aws-cli:1": {},
+    "ghcr.io/eitsupi/devcontainer-features/jq-likes:2": {},
+    "ghcr.io/dhoeric/features/act:1": {}
+    // "ghcr.io/guiyomh/features/just:0": {},
+    // "ghcr.io/jungaretti/features/ripgrep:1": {},
+    // "ghcr.io/lukewiwa/features/shellcheck:0": {},
+  }
+}

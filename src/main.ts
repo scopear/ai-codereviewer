@@ -4,15 +4,35 @@ import OpenAI from "openai";
 import { Octokit } from "@octokit/rest";
 import parseDiff, { Chunk, File } from "parse-diff";
 import minimatch from "minimatch";
+import { Certificate } from "crypto";
 
 const GITHUB_TOKEN: string = core.getInput("GITHUB_TOKEN");
 const OPENAI_API_KEY: string = core.getInput("OPENAI_API_KEY");
 const OPENAI_API_MODEL: string = core.getInput("OPENAI_API_MODEL");
+const OPENAI_API_VERSION: string = core.getInput("OPENAI_API_VERSION");
+const OPENAI_BASE_URL: string = core.getInput("OPENAI_BASE_URL"); // Keep the default value as undefined instead of empty strings.
+
+// Supports HTTP requests debugging via an environment variable.
+const debugHttp: string | undefined = process.env.DEBUG_HTTP;
+if (debugHttp) {
+  // Intercept all HTTP requests
+  const nock = require("nock");
+  nock.recorder.rec({
+    output_objects: true,
+    logging: (content: any) => {
+      console.log("HTTP Request:", content);
+    },
+  });
+  console.log("HTTP calls interception enabled");
+}
 
 const octokit = new Octokit({ auth: GITHUB_TOKEN });
 
 const openai = new OpenAI({
   apiKey: OPENAI_API_KEY,
+  baseURL: OPENAI_BASE_URL,
+  defaultQuery: { "api-version": OPENAI_API_VERSION },
+  defaultHeaders: { "api-key": OPENAI_API_KEY },
 });
 
 interface PRDetails {
@@ -127,7 +147,8 @@ async function getAIResponse(prompt: string): Promise<Array<{
     const response = await openai.chat.completions.create({
       ...queryConfig,
       // return JSON if the model supports it:
-      ...(OPENAI_API_MODEL === "gpt-4-1106-preview"
+      ...(OPENAI_API_MODEL === "gpt-4-1106-preview" ||
+      OPENAI_API_MODEL === "gpt-4o"
         ? { response_format: { type: "json_object" } }
         : {}),
       messages: [
@@ -210,7 +231,9 @@ async function main() {
 
     diff = String(response.data);
   } else {
-    console.log("Unsupported event:", process.env.GITHUB_EVENT_NAME);
+    console.log(
+      `Unsupported event: action=${eventData.action}, process.env.GITHUB_EVENT_NAME=${process.env.GITHUB_EVENT_NAME}`
+    );
     return;
   }
 
@@ -234,12 +257,13 @@ async function main() {
 
   const comments = await analyzeCode(filteredDiff, prDetails);
   if (comments.length > 0) {
-    await createReviewComment(
-      prDetails.owner,
-      prDetails.repo,
-      prDetails.pull_number,
-      comments
-    );
+    // await createReviewComment(
+    //   prDetails.owner,
+    //   prDetails.repo,
+    //   prDetails.pull_number,
+    //   comments
+    // );
+    await console.log("Comments:", comments);
   }
 }
 
