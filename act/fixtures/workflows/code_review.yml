@@ -15,7 +15,7 @@ jobs:
         with:
           path: ./
       - name: Code Review
-        uses: ./act/fixtures/
+        uses: ./act/fixtures/actions
         with:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
