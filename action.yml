@@ -17,7 +17,11 @@ inputs:
     description: "Base URL to the OpenAI API model (OpenAI or Azure)."
     required: true
   exclude:
-    description: "Glob patterns to exclude files from the diff analysis"
+    description: "Glob patterns to exclude files from the diff analysis. This has precedence over the `include` matches."
+    required: false
+    default: ""
+  include:
+    description: "Glob patterns to only include certain files from the diff analysis."
     required: false
     default: ""
 runs:

@@ -331,15 +331,34 @@ ${chunk.changes
           const excludePatterns = core
             .getInput("exclude")
             .split(",")
-            .map((s) => s.trim());
+            .map((s) => s.trim())
+            .filter((s) => s.length > 0); // Filter out empty strings;
+          const includePatterns = core
+            .getInput("include")
+            .split(",")
+            .map((s) => s.trim())
+            .filter((s) => s.length > 0); // Filter out empty strings;
           const filteredDiff = parsedDiff.filter((file) => {
-            return !excludePatterns.some((pattern) => {
-              var _a;
-              return (0, minimatch_1.default)(
-                (_a = file.to) !== null && _a !== void 0 ? _a : "",
-                pattern
-              );
-            });
+            const excluded =
+              excludePatterns.length > 0 &&
+              excludePatterns.some((pattern) => {
+                var _a;
+                return (0, minimatch_1.default)(
+                  (_a = file.to) !== null && _a !== void 0 ? _a : "",
+                  pattern
+                );
+              });
+            const included =
+              includePatterns.length === 0 ||
+              includePatterns.some((pattern) => {
+                var _a;
+                return (0, minimatch_1.default)(
+                  (_a = file.to) !== null && _a !== void 0 ? _a : "",
+                  pattern
+                );
+              });
+            // Exluded patterns take precedence over included patterns.
+            return !excluded && included;
           });
           const comments = yield analyzeCode(filteredDiff, prDetails);
           if (comments.length > 0) {

@@ -16,10 +16,10 @@ review process.
 1. To use this GitHub Action, you need an OpenAI API key. If you don't have one, sign up for an API key
    at [OpenAI](https://beta.openai.com/signup).
 
-2. Add the OpenAI API key as a GitHub Secret in your repository with the name `OPENAI_API_KEY`. You can find more
+1. Add the OpenAI API key as a GitHub Secret in your repository with the name `OPENAI_API_KEY`. You can find more
    information about GitHub Secrets [here](https://docs.github.com/en/actions/reference/encrypted-secrets).
 
-3. Create a `.github/workflows/main.yml` file in your repository and add the following content:
+1. Create a `.github/workflows/main.yml` file in your repository and add the following content:
 
 ```yaml
 name: CDS AI Code Reviewer
@@ -44,11 +44,14 @@ jobs:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           OPENAI_API_MODEL: "gpt-4" # Optional: defaults to "gpt-4"
           exclude: "**/*.json, **/*.md" # Optional: exclude patterns separated by commas
+          include: "**/*.ts" # Optional: include patterns separated by commas
 ```
 
-4. Customize the `exclude` input if you want to ignore certain file patterns from being reviewed.
+1. Customize the `exclude` input if you want to ignore certain file patterns from being reviewed.
 
-5. Commit the changes to your repository, and CDS AI Code Reviewer will start working on your future pull requests.
+1. Customize the `include` input if you want to add only certain file patterns to be reviewed. Any file matching the include and which also matches the `exclude` will favor the latter: `exclude` > `include`.
+
+1. Commit the changes to your repository, and CDS AI Code Reviewer will start working on your future pull requests.
 
 ## How It Works
 
