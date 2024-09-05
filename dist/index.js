@@ -343,13 +343,12 @@ ${chunk.changes
           });
           const comments = yield analyzeCode(filteredDiff, prDetails);
           if (comments.length > 0) {
-            // await createReviewComment(
-            //   prDetails.owner,
-            //   prDetails.repo,
-            //   prDetails.pull_number,
-            //   comments
-            // );
-            yield console.log("Comments:", comments);
+            yield createReviewComment(
+              prDetails.owner,
+              prDetails.repo,
+              prDetails.pull_number,
+              comments
+            );
           }
         });
       }
