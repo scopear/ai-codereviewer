@@ -257,13 +257,12 @@ async function main() {
 
   const comments = await analyzeCode(filteredDiff, prDetails);
   if (comments.length > 0) {
-    // await createReviewComment(
-    //   prDetails.owner,
-    //   prDetails.repo,
-    //   prDetails.pull_number,
-    //   comments
-    // );
-    await console.log("Comments:", comments);
+    await createReviewComment(
+      prDetails.owner,
+      prDetails.repo,
+      prDetails.pull_number,
+      comments
+    );
   }
 }
 
