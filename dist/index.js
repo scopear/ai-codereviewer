@@ -357,7 +357,7 @@ ${chunk.changes
                   pattern
                 );
               });
-            // Exluded patterns take precedence over included patterns.
+            // Excluded patterns take precedence over included patterns.
             return !excluded && included;
           });
           const comments = yield analyzeCode(filteredDiff, prDetails);

@@ -265,7 +265,7 @@ async function main() {
       includePatterns.length === 0 ||
       includePatterns.some((pattern) => minimatch(file.to ?? "", pattern));
 
-    // Exluded patterns take precedence over included patterns.
+    // Excluded patterns take precedence over included patterns.
     return !excluded && included;
   });
 
