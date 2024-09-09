@@ -247,12 +247,26 @@ async function main() {
   const excludePatterns = core
     .getInput("exclude")
     .split(",")
-    .map((s) => s.trim());
+    .map((s) => s.trim())
+    .filter((s) => s.length > 0); // Filter out empty strings;
+
+  const includePatterns = core
+    .getInput("include")
+    .split(",")
+    .map((s) => s.trim())
+    .filter((s) => s.length > 0); // Filter out empty strings;
 
   const filteredDiff = parsedDiff.filter((file) => {
-    return !excludePatterns.some((pattern) =>
-      minimatch(file.to ?? "", pattern)
-    );
+    const excluded: boolean =
+      excludePatterns.length > 0 &&
+      excludePatterns.some((pattern) => minimatch(file.to ?? "", pattern));
+
+    const included: boolean =
+      includePatterns.length === 0 ||
+      includePatterns.some((pattern) => minimatch(file.to ?? "", pattern));
+
+    // Excluded patterns take precedence over included patterns.
+    return !excluded && included;
   });
 
   const comments = await analyzeCode(filteredDiff, prDetails);

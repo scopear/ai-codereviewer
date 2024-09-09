@@ -19,4 +19,5 @@ jobs:
           OPENAI_API_MODEL: ${{ vars.OPENAI_API_MODEL }}
           OPENAI_API_VERSION: ${{ vars.OPENAI_API_VERSION }}
           OPENAI_BASE_URL: ${{ vars.OPENAI_BASE_URL }}
-          exclude: "yarn.lock,dist/**"
+          exclude: "*lock*,dist/**,**/*.js,**/*.js.map"
+          include: "**/*.ts,**/*.yml"
