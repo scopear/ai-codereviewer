@@ -31,7 +31,7 @@ const argv = yargs(hideBin(process.argv))
     alias: "t",
     type: "string",
     description: "GitHub personal access token",
-    demandOption: true,
+    demandOption: false,
     default: process.env.GITHUB_TOKEN,
   })
   .option("owner", {
@@ -79,7 +79,7 @@ const csvWriter = createObjectCsvWriter({
   ],
 });
 
-const reactionToCategory: { [key: string]: string } = {
+const reactionToCategory: Record<string, string> = {
   "+1": "Useful",
   eyes: "Noisy",
   confused: "Hallucination",
@@ -87,7 +87,7 @@ const reactionToCategory: { [key: string]: string } = {
   "-1": "Incorrect",
 };
 
-function extractCategories(reactions: any): string[] {
+function extractCategories(reactions: Record<string, any>): string[] {
   return Object.keys(reactions)
     .filter(
       (reaction) => reactionToCategory[reaction] && reactions[reaction] > 0
@@ -122,7 +122,7 @@ async function fetchCommentsForPR(prNumber: number): Promise<Comment[]> {
     );
 
     let comments: Comment[] = await Promise.all(
-      response.data.map(async (comment: any) => {
+      response.data.map(async (comment: Record<string, any>) => {
         const categories = extractCategories(comment.reactions);
         return {
           author: comment.user.login,
