@@ -14,14 +14,19 @@
   "dependencies": {
     "@actions/core": "^1.10.0",
     "@octokit/rest": "^19.0.7",
+    "axios": "1.7.7",
+    "csv-writer": "^1.6.0",
     "minimatch": "^7.4.2",
     "nock": "^13.5.5",
     "openai": "^4.20.1",
     "parse-diff": "^0.11.1",
-    "ts-node": "^10.9.1"
+    "ts-node": "^10.9.1",
+    "yargs": "17.7.2"
   },
   "devDependencies": {
+    "@types/axios": "0.14.0",
     "@types/node": "^18.15.5",
+    "@types/yargs": "^17.0.33",
     "@vercel/ncc": "^0.36.1",
     "prettier": "^2.8.6",
     "typescript": "^5.0.2"

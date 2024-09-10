@@ -1,10 +1,34 @@
+/**
+ * This script is designed to be used in a GitHub Actions workflow to automatically review pull requests.
+ * It fetches the details and diff of a pull request, analyzes the code changes using OpenAI's API, and
+ * posts review comments on the pull request based on the analysis.
+ *
+ * The script performs the following steps:
+ * 1. Fetches the pull request details and diff.
+ * 2. Filters the diff based on include and exclude patterns.
+ * 3. Analyzes the code changes using OpenAI's API to generate review comments.
+ * 4. Posts the generated review comments on the pull request.
+ *
+ * Environment Variables:
+ * - GITHUB_TOKEN: GitHub personal access token (required)
+ * - OPENAI_API_KEY: OpenAI API key (required)
+ * - OPENAI_API_MODEL: OpenAI API model to use (required)
+ * - OPENAI_API_VERSION: OpenAI API version to use (required)
+ * - OPENAI_BASE_URL: Base URL for the OpenAI API (optional)
+ * - DEBUG_HTTP: Enable HTTP request debugging (optional)
+ *
+ * Example Usage:
+ *   npx ts-node main.ts
+ *
+ * Note: It is recommended to set the GITHUB_TOKEN and OPENAI_API_KEY environment variables to avoid exposing sensitive information.
+ */
+
 import { readFileSync } from "fs";
 import * as core from "@actions/core";
 import OpenAI from "openai";
 import { Octokit } from "@octokit/rest";
 import parseDiff, { Chunk, File } from "parse-diff";
 import minimatch from "minimatch";
-import { Certificate } from "crypto";
 
 const GITHUB_TOKEN: string = core.getInput("GITHUB_TOKEN");
 const OPENAI_API_KEY: string = core.getInput("OPENAI_API_KEY");
