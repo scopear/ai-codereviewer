@@ -1,12 +1,14 @@
 name: CDS Code Review with OpenAI
-# on:
-#   pull_request:
-#     types:
-#       - opened
-#       - synchronize
+on:
+  push:
+    branches-ignore:
+      - main
+
 permissions: write-all
+
 jobs:
   code_review:
+    if: contains(github.event.head_commit.message, '[review]')
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
