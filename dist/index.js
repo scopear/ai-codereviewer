@@ -221,6 +221,14 @@ require("./sourcemap-register.js");
                 const validAIResponses = aiResponse.filter((response) =>
                   validLineNumbers.has(Number(response.lineNumber))
                 );
+                // Leave a log for each invalid line numbers for further debugging.
+                aiResponse.forEach((response) => {
+                  if (!validLineNumbers.has(Number(response.lineNumber))) {
+                    console.log(
+                      `Invalid line number: ${response.lineNumber} in file: ${file.to}\nComment: ${response.reviewComment}`
+                    );
+                  }
+                });
                 const newComments = createComment(
                   file,
                   chunk,
