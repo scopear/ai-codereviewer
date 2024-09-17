@@ -197,10 +197,43 @@ require("./sourcemap-register.js");
           for (const file of parsedDiff) {
             if (file.to === "/dev/null") continue; // Ignore deleted files
             for (const chunk of file.chunks) {
+              const validLineNumbers = new Set();
+              chunk.changes.forEach((change) => {
+                if ("ln" in change && change.ln)
+                  validLineNumbers.add(change.ln);
+                if ("ln2" in change && change.ln2)
+                  validLineNumbers.add(change.ln2);
+                // Generate a range of line numbers for additive changes.
+                if (
+                  "ln1" in change &&
+                  "ln2" in change &&
+                  change.ln1 &&
+                  change.ln2
+                ) {
+                  for (let i = change.ln1; i <= change.ln2; i++) {
+                    validLineNumbers.add(i);
+                  }
+                }
+              });
               const prompt = createPrompt(file, chunk, prDetails);
               const aiResponse = yield getAIResponse(prompt);
               if (aiResponse) {
-                const newComments = createComment(file, chunk, aiResponse);
+                const validAIResponses = aiResponse.filter((response) =>
+                  validLineNumbers.has(Number(response.lineNumber))
+                );
+                // Leave a log for each invalid line numbers for further debugging.
+                aiResponse.forEach((response) => {
+                  if (!validLineNumbers.has(Number(response.lineNumber))) {
+                    console.log(
+                      `Invalid line number: ${response.lineNumber} in file: ${file.to}\nComment: ${response.reviewComment}`
+                    );
+                  }
+                });
+                const newComments = createComment(
+                  file,
+                  chunk,
+                  validAIResponses
+                );
                 if (newComments) {
                   comments.push(...newComments);
                 }
