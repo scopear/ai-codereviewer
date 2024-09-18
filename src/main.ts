@@ -325,7 +325,7 @@ async function getAIResponse(prompt: string): Promise<Array<{
     const res = response.choices[0].message?.content?.trim() || "{}";
     return JSON.parse(res).reviews;
   } catch (error) {
-    console.error("Error:", error);
+    console.error("Could not fetch AI response:", error);
     return null;
   }
 }

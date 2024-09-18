@@ -28,6 +28,9 @@ require("./sourcemap-register.js");
        * - OPENAI_BASE_URL: Base URL for the OpenAI API (optional)
        * - DEBUG_HTTP: Enable HTTP request debugging (optional)
        *
+       * Example Usage:
+       *   npx ts-node main.ts
+       *
        * Note: It is recommended to set the GITHUB_TOKEN and OPENAI_API_KEY environment variables to avoid exposing sensitive information.
        */
       var __createBinding =
@@ -424,7 +427,7 @@ ${chunk.changes
                 : _b.trim()) || "{}";
             return JSON.parse(res).reviews;
           } catch (error) {
-            console.error("Error:", error);
+            console.error("Could not fetch AI response:", error);
             return null;
           }
         });
