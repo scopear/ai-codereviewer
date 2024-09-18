@@ -440,7 +440,7 @@ async function main() {
   }
 
   let diff: string | null;
-  switch (eventData.action) {
+  switch (eventName) {
     case "opened":
     case "push":
       diff = await getDiff(
@@ -465,7 +465,7 @@ async function main() {
       diff = String(response.data);
     default:
       console.log(
-        `Unsupported event: action=${eventData.action}, process.env.GITHUB_EVENT_NAME=${process.env.GITHUB_EVENT_NAME}`
+        `Unsupported event: eventName=${eventName}, process.env.GITHUB_EVENT_NAME=${process.env.GITHUB_EVENT_NAME}`
       );
       return;
   }

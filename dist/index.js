@@ -543,7 +543,7 @@ ${chunk.changes
             return;
           }
           let diff;
-          switch (eventData.action) {
+          switch (eventName) {
             case "opened":
             case "push":
               diff = yield getDiff(
@@ -566,7 +566,7 @@ ${chunk.changes
               diff = String(response.data);
             default:
               console.log(
-                `Unsupported event: action=${eventData.action}, process.env.GITHUB_EVENT_NAME=${process.env.GITHUB_EVENT_NAME}`
+                `Unsupported event: eventName=${eventName}, process.env.GITHUB_EVENT_NAME=${process.env.GITHUB_EVENT_NAME}`
               );
               return;
           }
