@@ -176,8 +176,10 @@ require("./sourcemap-register.js");
             case "opened":
             case "synchronize":
               return getPrFromEvent(eventData);
+              break;
             case "push":
               return getPrFromApi(eventData);
+              break;
             default:
               throw new Error(`Unsupported event: action=${eventName}`);
           }
@@ -551,6 +553,7 @@ ${chunk.changes
                 prDetails.repo,
                 prDetails.pull_number
               );
+              break;
             case "synchronize":
               const newBaseSha = eventData.before;
               const newHeadSha = eventData.after;
@@ -564,6 +567,7 @@ ${chunk.changes
                 head: newHeadSha,
               });
               diff = String(response.data);
+              break;
             default:
               console.log(
                 `Unsupported event: eventName=${eventName}, process.env.GITHUB_EVENT_NAME=${process.env.GITHUB_EVENT_NAME}`
