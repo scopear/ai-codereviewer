@@ -170,6 +170,11 @@ require("./sourcemap-register.js");
           const { repository, number } = JSON.parse(
             (0, fs_1.readFileSync)(process.env.GITHUB_EVENT_PATH || "", "utf8")
           );
+          if (!repository || !number) {
+            throw new Error(
+              "Invalid event payload: missing repository or number"
+            );
+          }
           const prResponse = yield octokit.pulls.get({
             owner: repository.owner.login,
             repo: repository.name,

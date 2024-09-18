@@ -79,6 +79,10 @@ async function getPRDetails(): Promise<PRDetails> {
   const { repository, number } = JSON.parse(
     readFileSync(process.env.GITHUB_EVENT_PATH || "", "utf8")
   );
+  if (!repository || !number) {
+    throw new Error("Invalid event payload: missing repository or number");
+  }
+
   const prResponse = await octokit.pulls.get({
     owner: repository.owner.login,
     repo: repository.name,
