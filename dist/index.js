@@ -375,6 +375,12 @@ ${chunk.changes
               head: newHeadSha,
             });
             diff = String(response.data);
+          } else if (eventData.action === "placeholder") {
+            diff = yield getDiff(
+              prDetails.owner,
+              prDetails.repo,
+              prDetails.pull_number
+            );
           } else {
             console.log(
               `Unsupported event: action=${eventData.action}, process.env.GITHUB_EVENT_NAME=${process.env.GITHUB_EVENT_NAME}`
