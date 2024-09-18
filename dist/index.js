@@ -355,6 +355,7 @@ ${chunk.changes
               "utf8"
             )
           );
+          console.log("Github triggered event data:", eventData);
           if (eventData.action === "opened") {
             diff = yield getDiff(
               prDetails.owner,
