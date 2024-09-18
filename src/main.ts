@@ -82,25 +82,20 @@ interface PRDetails {
  * @returns {Promise<PRDetails>} - A promise that resolves to the pull request details.
  *
  * @throws {Error} - Throws an error if the event type is unsupported.
- *
- * Example usage:
- * const prDetails = await getPrDetails("opened");
- * console.log(prDetails);
  */
-async function getPrDetails(event: GitHubEvent): Promise<PRDetails> {
+async function getPrDetails(
+  eventName: GitHubEvent,
+  eventData: any
+): Promise<PRDetails> {
   const eventPath = process.env.GITHUB_EVENT_PATH || "";
-  const eventData = JSON.parse(readFileSync(eventPath, "utf8"));
-
-  console.log("GitHub Event Data:", eventData); // Log the event data for debugging
-
-  switch (event) {
+  switch (eventName) {
     case "opened":
     case "synchronize":
       return getPrFromEvent(eventData);
     case "push":
       return getPrFromApi(eventData);
     default:
-      throw new Error(`Unsupported event: ${event}`);
+      throw new Error(`Unsupported event: action=${eventName}`);
   }
 }
 
@@ -201,11 +196,6 @@ async function getDiff(
  * @param {File[]} parsedDiff - An array of parsed diff files to be analyzed.
  * @param {PRDetails} prDetails - Details of the pull request, including owner, repo, pull number, title, and description.
  * @returns {Promise<Array<{ body: string; path: string; line: number }>>} - A promise that resolves to an array of review comments.
- *
- * Example usage:
- * const parsedDiff = parseDiff(diff);
- * const prDetails = await getPRDetails();
- * const comments = await analyzeCode(parsedDiff, prDetails);
  */
 async function analyzeCode(
   parsedDiff: File[],
@@ -405,10 +395,6 @@ async function createReviewComment(
  *
  * @param {File[]} parsedDiff - An array of parsed diff files to be filtered.
  * @returns {File[]} - An array of filtered diff files.
- *
- * Example usage:
- * const parsedDiff = parseDiff(diff);
- * const filteredDiff = filterDiffs(parsedDiff);
  */
 function filterDiffs(parsedDiff: File[]): File[] {
   const excludePatterns = core
@@ -443,9 +429,11 @@ async function main() {
   const eventData = JSON.parse(
     readFileSync(process.env.GITHUB_EVENT_PATH ?? "", "utf8")
   );
-  console.log("GitHub triggered event data:", eventData);
+  const eventName = process.env.GITHUB_EVENT_NAME as GitHubEvent;
+  console.log("GitHub event name:", eventName);
+  console.log("GitHub event data:", eventData);
 
-  const prDetails = await getPrDetails(eventData);
+  const prDetails = await getPrDetails(eventName, eventData);
   if (!prDetails) {
     console.log("No associated pull request found for this push event.");
     return;

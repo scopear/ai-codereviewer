@@ -28,9 +28,6 @@ require("./sourcemap-register.js");
        * - OPENAI_BASE_URL: Base URL for the OpenAI API (optional)
        * - DEBUG_HTTP: Enable HTTP request debugging (optional)
        *
-       * Example Usage:
-       *   npx ts-node main.ts
-       *
        * Note: It is recommended to set the GITHUB_TOKEN and OPENAI_API_KEY environment variables to avoid exposing sensitive information.
        */
       var __createBinding =
@@ -168,26 +165,18 @@ require("./sourcemap-register.js");
        * @returns {Promise<PRDetails>} - A promise that resolves to the pull request details.
        *
        * @throws {Error} - Throws an error if the event type is unsupported.
-       *
-       * Example usage:
-       * const prDetails = await getPrDetails("opened");
-       * console.log(prDetails);
        */
-      function getPrDetails(event) {
+      function getPrDetails(eventName, eventData) {
         return __awaiter(this, void 0, void 0, function* () {
           const eventPath = process.env.GITHUB_EVENT_PATH || "";
-          const eventData = JSON.parse(
-            (0, fs_1.readFileSync)(eventPath, "utf8")
-          );
-          console.log("GitHub Event Data:", eventData); // Log the event data for debugging
-          switch (event) {
+          switch (eventName) {
             case "opened":
             case "synchronize":
               return getPrFromEvent(eventData);
             case "push":
               return getPrFromApi(eventData);
             default:
-              throw new Error(`Unsupported event: ${event}`);
+              throw new Error(`Unsupported event: action=${eventName}`);
           }
         });
       }
@@ -293,11 +282,6 @@ require("./sourcemap-register.js");
        * @param {File[]} parsedDiff - An array of parsed diff files to be analyzed.
        * @param {PRDetails} prDetails - Details of the pull request, including owner, repo, pull number, title, and description.
        * @returns {Promise<Array<{ body: string; path: string; line: number }>>} - A promise that resolves to an array of review comments.
-       *
-       * Example usage:
-       * const parsedDiff = parseDiff(diff);
-       * const prDetails = await getPRDetails();
-       * const comments = await analyzeCode(parsedDiff, prDetails);
        */
       function analyzeCode(parsedDiff, prDetails) {
         return __awaiter(this, void 0, void 0, function* () {
@@ -498,10 +482,6 @@ ${chunk.changes
        *
        * @param {File[]} parsedDiff - An array of parsed diff files to be filtered.
        * @returns {File[]} - An array of filtered diff files.
-       *
-       * Example usage:
-       * const parsedDiff = parseDiff(diff);
-       * const filteredDiff = filterDiffs(parsedDiff);
        */
       function filterDiffs(parsedDiff) {
         const excludePatterns = core
@@ -549,8 +529,10 @@ ${chunk.changes
               "utf8"
             )
           );
-          console.log("GitHub triggered event data:", eventData);
-          const prDetails = yield getPrDetails(eventData);
+          const eventName = process.env.GITHUB_EVENT_NAME;
+          console.log("GitHub event name:", eventName);
+          console.log("GitHub event data:", eventData);
+          const prDetails = yield getPrDetails(eventName, eventData);
           if (!prDetails) {
             console.log(
               "No associated pull request found for this push event."
