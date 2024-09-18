@@ -160,6 +160,13 @@ require("./sourcemap-register.js");
       function getPRDetails() {
         var _a, _b;
         return __awaiter(this, void 0, void 0, function* () {
+          console.log("Fetching pull request details...");
+          console.log("GITHUB_EVENT_PATH:", process.env.GITHUB_EVENT_PATH);
+          console.log("GITHUB_EVENT_NAME:", process.env.GITHUB_EVENT_NAME);
+          const eventData = JSON.parse(
+            (0, fs_1.readFileSync)(process.env.GITHUB_EVENT_PATH || "", "utf8")
+          );
+          console.log("Github event data:", eventData);
           const { repository, number } = JSON.parse(
             (0, fs_1.readFileSync)(process.env.GITHUB_EVENT_PATH || "", "utf8")
           );

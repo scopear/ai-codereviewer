@@ -68,6 +68,14 @@ interface PRDetails {
 }
 
 async function getPRDetails(): Promise<PRDetails> {
+  console.log("Fetching pull request details...");
+  console.log("GITHUB_EVENT_PATH:", process.env.GITHUB_EVENT_PATH);
+  console.log("GITHUB_EVENT_NAME:", process.env.GITHUB_EVENT_NAME);
+  const eventData = JSON.parse(
+    readFileSync(process.env.GITHUB_EVENT_PATH || "", "utf8")
+  );
+  console.log("Github event data:", eventData);
+
   const { repository, number } = JSON.parse(
     readFileSync(process.env.GITHUB_EVENT_PATH || "", "utf8")
   );
