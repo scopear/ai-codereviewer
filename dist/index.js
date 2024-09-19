@@ -468,11 +468,16 @@ ${chunk.changes
        */
       function createReviewComment(owner, repo, pull_number, comments) {
         return __awaiter(this, void 0, void 0, function* () {
+          const validComments = comments.filter((comment) => comment.line > 0);
+          if (validComments.length === 0) {
+            console.log("No valid comments to post.");
+            return;
+          }
           yield octokit.pulls.createReview({
             owner,
             repo,
             pull_number,
-            comments,
+            comments: validComments,
             event: "COMMENT",
           });
         });
@@ -535,8 +540,6 @@ ${chunk.changes
             )
           );
           const eventName = process.env.GITHUB_EVENT_NAME;
-          console.log("GitHub event name:", eventName);
-          console.log("GitHub event data:", eventData);
           const prDetails = yield getPrDetails(eventName, eventData);
           if (!prDetails) {
             console.log(
@@ -582,6 +585,12 @@ ${chunk.changes
           const filteredDiff = filterDiffs(parsedDiff);
           const comments = yield analyzeCode(filteredDiff, prDetails);
           if (comments.length > 0) {
+            // Additional logging and validation before creating the review
+            comments.forEach((comment) => {
+              console.log(
+                `Comment to be posted: ${comment.body} at ${comment.path}:${comment.line}`
+              );
+            });
             yield createReviewComment(
               prDetails.owner,
               prDetails.repo,

@@ -378,11 +378,17 @@ async function createReviewComment(
   pull_number: number,
   comments: Array<{ body: string; path: string; line: number }>
 ): Promise<void> {
+  const validComments = comments.filter((comment) => comment.line > 0);
+  if (validComments.length === 0) {
+    console.log("No valid comments to post.");
+    return;
+  }
+
   await octokit.pulls.createReview({
     owner,
     repo,
     pull_number,
-    comments,
+    comments: validComments,
     event: "COMMENT",
   });
 }
@@ -432,8 +438,6 @@ async function main() {
     readFileSync(process.env.GITHUB_EVENT_PATH ?? "", "utf8")
   );
   const eventName = process.env.GITHUB_EVENT_NAME as GitHubEvent;
-  console.log("GitHub event name:", eventName);
-  console.log("GitHub event data:", eventData);
 
   const prDetails = await getPrDetails(eventName, eventData);
   if (!prDetails) {
@@ -482,6 +486,13 @@ async function main() {
 
   const comments = await analyzeCode(filteredDiff, prDetails);
   if (comments.length > 0) {
+    // Additional logging and validation before creating the review
+    comments.forEach((comment) => {
+      console.log(
+        `Comment to be posted: ${comment.body} at ${comment.path}:${comment.line}`
+      );
+    });
+
     await createReviewComment(
       prDetails.owner,
       prDetails.repo,
