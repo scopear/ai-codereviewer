@@ -176,10 +176,8 @@ require("./sourcemap-register.js");
             case "opened":
             case "synchronize":
               return getPrFromEvent(eventData);
-              break;
             case "push":
               return getPrFromApi(eventData);
-              break;
             default:
               throw new Error(`Unsupported event: action=${eventName}`);
           }
@@ -585,7 +583,9 @@ ${chunk.changes
           const filteredDiff = filterDiffs(parsedDiff);
           const comments = yield analyzeCode(filteredDiff, prDetails);
           if (comments.length > 0) {
-            // Additional logging and validation before creating the review
+            // We want to log the comments to be posted for debugging purposes, as
+            // we see errors when used in the actual workflow but cannot figure out
+            // why without seeing these logged comments.
             comments.forEach((comment) => {
               console.log(
                 `Comment to be posted: ${comment.body} at ${comment.path}:${comment.line}`
