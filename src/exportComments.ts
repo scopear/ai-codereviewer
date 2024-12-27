@@ -1,24 +1,37 @@
 /**
  * This script fetches comments from specified GitHub pull requests and exports them to a CSV file.
+ * 
  * It uses the GitHub API to retrieve the comments and filters them based on the provided author (if specified).
- * The resulting CSV file contains the pull request number, author, comment, and a link to the comment.
+ * The resulting CSV file contains the date, AI feedback, pull request number, author, comment, and a link to
+ * the comment.
  *
  * Usage:
  *   npx ts-node exportComments.ts --token <your_github_token> --owner <repo_owner> --repo <repo_name> --prs <pr_numbers> [--author <author_name>]
  *
  * Options:
- *   --token, -t   GitHub personal access token (can also be set via the GITHUB_TOKEN environment variable)
- *                 It is recommended to use the environment variable to avoid exposing sensitive information.
- *   --owner, -o   Repository owner
- *   --repo, -r    Repository name
- *   --prs, -p     Comma-separated list of pull request numbers
- *   --author, -a  Author of the comments to filter with (optional)
+ *   --owner, -o    Repository owner (required)
+ *   --repo, -r     Repository name (required)
+ *   --author, -a   Author of the comments to filter with (optional -- likely the AI bot author name)
+ *   --since, -s    Filter comments since the given date (YYYY-MM-DD) (required)
+ *   --until, -u    Filter comments until the given date (YYYY-MM-DD) (optional, defaults to now)
+  *   --token, -t   GitHub personal access token (can also be set via the GITHUB_TOKEN environment variable or `.env` file)
+ *                  It is recommended to use the environment variable to avoid exposing sensitive information.
  *
  * Example:
  *   npx ts-node exportComments.ts --owner cds-snc --repo cds-ai-codereviewer --prs 6,7,8 --author github-actions[bot]
+ * 
+ *   npx ts-node src/exportComments.ts --owner cds-snc --repo notification-terraform --since 2024-12-01 --author 'github-actions[bot]' --until 2024-12-31
  *
  * Environment Variable:
  *   GITHUB_TOKEN   GitHub personal access token (recommended to use this instead of --token argument)
+ * 
+ * The GITHUB_TOKEN can be configured using a .env file at the root of the project:
+ * 
+ * Example .env file:
+ * 
+ * ```txt
+ * GITHUB_TOKEN=your_actual_token_here
+ * ```
  */
 
 import axios from "axios";
