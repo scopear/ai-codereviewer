@@ -13,8 +13,8 @@
  *   --repo, -r     Repository name (required)
  *   --author, -a   Author of the comments to filter with (optional -- likely the AI bot author name)
  *   --since, -s    Filter comments since the given date (YYYY-MM-DD) (required)
- *   --until, -u    Filter comments until the given date (YYYY-MM-DD) (optional, defaults to now)
-  *   --token, -t   GitHub personal access token (can also be set via the GITHUB_TOKEN environment variable or `.env` file)
+ *   --until, -u    Filter comments until the given date (YYYY-MM-DD) (optional, defaults to current date)
+ *   --token, -t    GitHub personal access token (can also be set via the GITHUB_TOKEN environment variable or `.env` file)
  *                  It is recommended to use the environment variable to avoid exposing sensitive information.
  *
  * Example:
