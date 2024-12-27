@@ -26,12 +26,16 @@ import { createObjectCsvWriter } from "csv-writer";
 import yargs from "yargs";
 import { hideBin } from "yargs/helpers";
 
+// filepath: /workspace/src/exportComments.ts
+import dotenv from 'dotenv';
+dotenv.config();
+
 const argv = yargs(hideBin(process.argv))
   .option("token", {
     alias: "t",
     type: "string",
     description: "GitHub personal access token",
-    demandOption: false,
+    demandOption: true,
     default: process.env.GITHUB_TOKEN,
   })
   .option("owner", {
@@ -46,22 +50,33 @@ const argv = yargs(hideBin(process.argv))
     description: "Repository name",
     demandOption: true,
   })
-  .option("prs", {
-    alias: "p",
-    type: "string",
-    description: "Comma-separated list of pull request numbers",
-    demandOption: true,
-  })
   .option("author", {
     alias: "a",
     type: "string",
     description: "Author of the comments to filter with",
     demandOption: false,
   })
+  .option("since", {
+    alias: "s",
+    type: "string",
+    description: "Filter comments since the given date (YYYY-MM-DD)",
+    demandOption: true,
+    coerce: coerceDate,
+  })
+  .option("until", {
+    alias: "u",
+    type: "string",
+    description: "Filter comments until the given date (YYYY-MM-DD)",
+    demandOption: false,
+    coerce: coerceDate,
+    default: new Date(),
+  })
   .parseSync(); // Use parseSync to ensure argv is not a Promise
 
 interface Comment {
+  date: string;
   author: string;
+  repository: string;
   prNumber: string;
   category: string[];
   comment: string;
@@ -71,7 +86,9 @@ interface Comment {
 const csvWriter = createObjectCsvWriter({
   path: "pr_comments.csv",
   header: [
+    { id: "date", title: "Date" },
     { id: "author", title: "Author" },
+    { id: "repository", title: "Repository" },
     { id: "prNumber", title: "PR Number" },
     { id: "category", title: "Category" },
     { id: "comment", title: "Comment" },
@@ -79,29 +96,40 @@ const csvWriter = createObjectCsvWriter({
   ],
 });
 
+function coerceDate(dateStr: string): Date {
+  const date = new Date(dateStr);
+  if (isNaN(date.getTime())) {
+    throw new Error("Invalid date format. Please use YYYY-MM-DD.");
+  }
+  return date;
+}
+
 const reactionToCategory: Record<string, string> = {
   "+1": "Useful",
   eyes: "Noisy",
   confused: "Hallucination",
   rocket: "Teachable",
   "-1": "Incorrect",
+  null: "None",
 };
 
 function extractCategories(reactions: Record<string, any>): string[] {
-  return Object.keys(reactions)
+  const category = Object.keys(reactions)
     .filter(
       (reaction) => reactionToCategory[reaction] && reactions[reaction] > 0
     )
     .map((reaction) => reactionToCategory[reaction]);
+  const nonEmptyCategory = category?.length === 0 ? ["None"] : category;
+  return nonEmptyCategory;
 }
 
-async function fetchComments(): Promise<void> {
-  const prNumbers = argv.prs
+async function fetchCommentsForPRs(prNumbers: string): Promise<void> {
+  const intPrNumbers = prNumbers
     .split(",")
     .map((pr: string) => parseInt(pr.trim(), 10));
   let allComments: Comment[] = [];
 
-  for (const prNumber of prNumbers) {
+  for (const prNumber of intPrNumbers) {
     const comments = await fetchCommentsForPR(prNumber);
     allComments = allComments.concat(comments);
   }
@@ -124,8 +152,11 @@ async function fetchCommentsForPR(prNumber: number): Promise<Comment[]> {
     let comments: Comment[] = await Promise.all(
       response.data.map(async (comment: Record<string, any>) => {
         const categories = extractCategories(comment.reactions);
+        console.debug(`Categories for comment ${argv.repo}/pull/${prNumber}/${comment.id}:`, categories);
         return {
+          date: comment.created_at,
           author: comment.user.login,
+          repository: `${argv.owner}/${argv.repo}`,
           prNumber: prNumber.toString(),
           category: categories,
           comment: comment.body,
@@ -145,4 +176,56 @@ async function fetchCommentsForPR(prNumber: number): Promise<Comment[]> {
   }
 }
 
-fetchComments();
+async function fetchComments(since: Date, until: Date = new Date()): Promise<Comment[]> {
+  let comments: Comment[] = [];
+  try {
+    const pullRequests = await fetchPullRequests(argv.owner, argv.repo, since, until);
+
+    for (const pr of pullRequests) {
+      console.log(`Fetching comments for PR ${argv.repo}/pull/${pr.number}...`);
+      const prComments = await fetchCommentsForPR(pr.number);
+      comments = comments.concat(prComments);
+    }
+  }
+  finally {
+    console.debug(`comments=${comments}`);
+    await csvWriter.writeRecords(comments);
+    console.log("CSV file written successfully");
+  }
+  return comments;
+}
+
+async function fetchPullRequests(owner: string, repo: string, since: Date, until: Date) {
+  const pullRequests = [];
+  let page = 1;
+  let hasMore = true;
+
+  while (hasMore) {
+    const response = await axios.get(`https://api.github.com/repos/${owner}/${repo}/pulls`, {
+      headers: {
+        Authorization: `token ${argv.token}`,
+        Accept: 'application/vnd.github.v3+json',
+      },
+      params: {
+        state: 'all',
+        per_page: 100,
+        page,
+        sort: 'updated',
+        direction: 'desc',
+      },
+    });
+
+    const filteredPRs = response.data.filter((pr: any) => new Date(pr.updated_at) >= since && new Date(pr.updated_at) <= until);
+    pullRequests.push(...filteredPRs);
+
+    if (response.data.length < 100) {
+      hasMore = false;
+    } else {
+      page++;
+    }
+  }
+
+  return pullRequests;
+}
+
+fetchComments(argv.since, argv.until);
