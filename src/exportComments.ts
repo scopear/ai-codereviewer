@@ -57,12 +57,14 @@ const argv = yargs(hideBin(process.argv))
     description: "Repository owner",
     demandOption: true,
   })
-  .option("repo", {
+  .option("repos", {
     alias: "r",
-    type: "string",
-    description: "Repository name",
+    type: "array",
+    description: "List of repository names",
     demandOption: true,
   })
+  .array("repos")
+  .string("repos")
   .option("author", {
     alias: "a",
     type: "string",
@@ -136,25 +138,10 @@ function extractCategories(reactions: Record<string, any>): string[] {
   return nonEmptyCategory;
 }
 
-async function fetchCommentsForPRs(prNumbers: string): Promise<void> {
-  const intPrNumbers = prNumbers
-    .split(",")
-    .map((pr: string) => parseInt(pr.trim(), 10));
-  let allComments: Comment[] = [];
-
-  for (const prNumber of intPrNumbers) {
-    const comments = await fetchCommentsForPR(prNumber);
-    allComments = allComments.concat(comments);
-  }
-
-  await csvWriter.writeRecords(allComments);
-  console.log("CSV file written successfully");
-}
-
-async function fetchCommentsForPR(prNumber: number): Promise<Comment[]> {
+async function fetchCommentsForPR(owner: string, repository: string, prNumber: number, author?: string): Promise<Comment[]> {
   try {
     const response = await axios.get(
-      `https://api.github.com/repos/${argv.owner}/${argv.repo}/pulls/${prNumber}/comments`,
+      `https://api.github.com/repos/${owner}/${repository}/pulls/${prNumber}/comments`,
       {
         headers: {
           Authorization: `token ${argv.token}`,
@@ -165,11 +152,11 @@ async function fetchCommentsForPR(prNumber: number): Promise<Comment[]> {
     let comments: Comment[] = await Promise.all(
       response.data.map(async (comment: Record<string, any>) => {
         const categories = extractCategories(comment.reactions);
-        console.debug(`Categories for comment ${argv.repo}/pull/${prNumber}/${comment.id}:`, categories);
+        console.debug(`Categories for comment ${repository}/pull/${prNumber}/${comment.id}:`, categories);
         return {
           date: comment.created_at,
           author: comment.user.login,
-          repository: `${argv.owner}/${argv.repo}`,
+          repository: `${owner}/${repository}`,
           prNumber: prNumber.toString(),
           category: categories,
           comment: comment.body,
@@ -178,8 +165,8 @@ async function fetchCommentsForPR(prNumber: number): Promise<Comment[]> {
       })
     );
 
-    if (argv.author) {
-      comments = comments.filter((comment) => comment.author === argv.author);
+    if (author) {
+      comments = comments.filter((comment) => comment.author === author);
     }
 
     return comments;
@@ -189,23 +176,20 @@ async function fetchCommentsForPR(prNumber: number): Promise<Comment[]> {
   }
 }
 
-async function fetchComments(since: Date, until: Date = new Date()): Promise<Comment[]> {
-  let comments: Comment[] = [];
-  try {
-    const pullRequests = await fetchPullRequests(argv.owner, argv.repo, since, until);
-
+// Function to fetch comments for multiple repositories
+async function fetchCommentsForRepos(owner: string, repositories: string[], since: Date, until: Date, author?: string): Promise<Comment[]> {
+  let allComments: Comment[] = [];
+  for (const repository of repositories) {
+    console.log(`Fetching comments for repository ${owner}/${repository}...`);
+    const pullRequests = await fetchPullRequests(owner, repository, since, until);
     for (const pr of pullRequests) {
-      console.log(`Fetching comments for PR ${argv.repo}/pull/${pr.number}...`);
-      const prComments = await fetchCommentsForPR(pr.number);
-      comments = comments.concat(prComments);
+      const prComments = await fetchCommentsForPR(owner, repository, pr.number, author);
+      allComments = allComments.concat(prComments);
     }
   }
-  finally {
-    console.debug(`comments=${comments}`);
-    await csvWriter.writeRecords(comments);
-    console.log("CSV file written successfully");
-  }
-  return comments;
+  await csvWriter.writeRecords(allComments);
+  console.log("CSV file written successfully");
+  return allComments;
 }
 
 async function fetchPullRequests(owner: string, repo: string, since: Date, until: Date) {
@@ -213,6 +197,7 @@ async function fetchPullRequests(owner: string, repo: string, since: Date, until
   let page = 1;
   let hasMore = true;
 
+  console.debug(`Fetching pull requests for ${owner}/${repo}...`);
   while (hasMore) {
     const response = await axios.get(`https://api.github.com/repos/${owner}/${repo}/pulls`, {
       headers: {
@@ -238,7 +223,8 @@ async function fetchPullRequests(owner: string, repo: string, since: Date, until
     }
   }
 
+  console.debug(`Fetched ${pullRequests.length} pull requests for ${owner}/${repo}`);
   return pullRequests;
 }
 
-fetchComments(argv.since, argv.until);
+fetchCommentsForRepos(argv.owner, argv.repos, argv.since, argv.until, argv.author);
