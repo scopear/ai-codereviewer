@@ -1,5 +1,6 @@
 /**
- * This script fetches comments from specified GitHub pull requests and exports them to a CSV file.
+ * This script fetches comments from specified GitHub repositories, for a given time frame, 
+ * and exports these to a CSV file.
  * 
  * It uses the GitHub API to retrieve the comments and filters them based on the provided author (if specified).
  * The resulting CSV file contains the date, AI feedback, pull request number, author, comment, and a link to
