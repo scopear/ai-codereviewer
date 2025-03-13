@@ -1,4 +1,4 @@
-name: "CDS AI Code Review Action (act fixture)"
+name: "AI Code Review Action (act fixture)"
 description: "Perform code reviews and comment on diffs using OpenAI API."
 inputs:
   GITHUB_TOKEN:

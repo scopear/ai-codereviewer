@@ -1,4 +1,4 @@
-name: CDS Code Review with OpenAI
+name: Code Review with OpenAI
 on:
   push:
     branches-ignore:
