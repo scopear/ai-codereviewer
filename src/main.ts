@@ -88,6 +88,11 @@ async function getPrDetails(
   eventData: any
 ): Promise<PRDetails> {
   const eventPath = process.env.GITHUB_EVENT_PATH || "";
+
+  if (process.env.GITHUB_EVENT_NAME === "pull_request") {
+    eventName = eventData.action; // Use action, not "pull_request"
+  }
+
   switch (eventName) {
     case "opened":
     case "synchronize":
@@ -95,9 +100,10 @@ async function getPrDetails(
     case "push":
       return getPrFromApi(eventData);
     default:
-      throw new Error(`Unsupported event: action=${eventName}`);
+      throw new Error(`Unsupported event: eventName=${eventName}, actionType=${eventData.action}`);
   }
 }
+
 
 /**
  * Retrieves pull request details from the given event data.
@@ -435,7 +441,10 @@ async function main() {
   const eventData = JSON.parse(
     readFileSync(process.env.GITHUB_EVENT_PATH ?? "", "utf8")
   );
-  const eventName = process.env.GITHUB_EVENT_NAME as GitHubEvent;
+
+  const eventName = process.env.GITHUB_EVENT_NAME === "pull_request"
+    ? eventData.action // Use action from eventData
+    : (process.env.GITHUB_EVENT_NAME as GitHubEvent);
 
   const prDetails = await getPrDetails(eventName, eventData);
   if (!prDetails) {
