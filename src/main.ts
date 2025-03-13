@@ -494,6 +494,9 @@ async function main() {
   const parsedDiff = parseDiff(diff);
   const filteredDiff = filterDiffs(parsedDiff);
 
+  console.log("parsedDiff", parsedDiff)
+  console.log("filteredDiff", filteredDiff)
+
   const comments = await analyzeCode(filteredDiff, prDetails);
   if (comments.length > 0) {
     // We want to log the comments to be posted for debugging purposes, as
@@ -511,6 +514,10 @@ async function main() {
       prDetails.pull_number,
       comments
     );
+  }
+  else
+  {
+    console.log("No comments");
   }
 }
 

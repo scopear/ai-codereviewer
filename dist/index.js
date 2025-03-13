@@ -462,6 +462,8 @@ function main() {
         }
         const parsedDiff = (0, parse_diff_1.default)(diff);
         const filteredDiff = filterDiffs(parsedDiff);
+        console.log("parsedDiff", parsedDiff);
+        console.log("filteredDiff", filteredDiff);
         const comments = yield analyzeCode(filteredDiff, prDetails);
         if (comments.length > 0) {
             // We want to log the comments to be posted for debugging purposes, as
@@ -471,6 +473,9 @@ function main() {
                 console.log(`Comment to be posted: ${comment.body} at ${comment.path}:${comment.line}`);
             });
             yield createReviewComment(prDetails.owner, prDetails.repo, prDetails.pull_number, comments);
+        }
+        else {
+            console.log("No comments");
         }
     });
 }
