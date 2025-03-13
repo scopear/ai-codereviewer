@@ -89,6 +89,8 @@ async function getPrDetails(
 ): Promise<PRDetails> {
   const eventPath = process.env.GITHUB_EVENT_PATH || "";
 
+  console.log("process.env.GITHUB_EVENT_NAME", process.env.GITHUB_EVENT_NAME)
+  console.log("eventName", eventName)
   if (process.env.GITHUB_EVENT_NAME === "pull_request") {
     eventName = eventData.action; // Use action, not "pull_request"
   }
