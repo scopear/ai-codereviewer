@@ -229,6 +229,7 @@ async function analyzeCode(
       });
 
       const prompt = createPrompt(file, chunk, prDetails);
+      console.log("Prompt", prompt)
       const aiResponse = await getAIResponse(prompt);
       if (aiResponse) {
         const validAIResponses = aiResponse.filter((response) =>

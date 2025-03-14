@@ -244,6 +244,7 @@ function analyzeCode(parsedDiff, prDetails) {
                     }
                 });
                 const prompt = createPrompt(file, chunk, prDetails);
+                console.log("Prompt", prompt);
                 const aiResponse = yield getAIResponse(prompt);
                 if (aiResponse) {
                     const validAIResponses = aiResponse.filter((response) => validLineNumbers.has(Number(response.lineNumber)));
