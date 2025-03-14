@@ -378,7 +378,7 @@ function createReviewComment(owner, repo, pull_number, comments) {
             console.log("No valid comments to post.");
             return;
         }
-        const batchSize = 5; // Number of comments to post per batch
+        const batchSize = 3; // Number of comments to post per batch
         const delayMs = 1000; // Delay in milliseconds between batches
         // Helper function to pause execution
         const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
@@ -392,6 +392,7 @@ function createReviewComment(owner, repo, pull_number, comments) {
                 comments: batch,
                 event: "COMMENT",
             });
+            console.log(`Posted ${i + batchSize} comments`);
             // Pause before posting the next batch if there are any comments left
             if (i + batchSize < validComments.length) {
                 yield delay(delayMs);
