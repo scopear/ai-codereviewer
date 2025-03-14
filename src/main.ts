@@ -388,7 +388,7 @@ async function createReviewComment(
     return;
   }
 
-  const batchSize = 5; // Number of comments to post per batch
+  const batchSize = 3; // Number of comments to post per batch
   const delayMs = 1000; // Delay in milliseconds between batches
 
   // Helper function to pause execution
@@ -405,6 +405,7 @@ async function createReviewComment(
       event: "COMMENT",
     });
 
+    console.log(`Posted ${i+batchSize} comments`)
     // Pause before posting the next batch if there are any comments left
     if (i + batchSize < validComments.length) {
       await delay(delayMs);
