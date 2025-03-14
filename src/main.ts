@@ -381,38 +381,62 @@ async function createReviewComment(
   repo: string,
   pull_number: number,
   comments: Array<{ body: string; path: string; line: number }>
-): Promise<void> {
-  const validComments = comments.filter((comment) => comment.line > 0);
+) {
+  const validComments = comments.filter(comment => comment.line > 0);
   if (validComments.length === 0) {
     console.log("No valid comments to post.");
     return;
   }
 
-  const batchSize = 3; // Number of comments to post per batch
-  const delayMs = 1000; // Delay in milliseconds between batches
+  const batchSize = 3; // Number of comments to post per review
+  const initialDelayMs = 1500; // Starting delay between retries (in ms)
+  const maxDelayMs = 10000;    // Maximum delay for exponential backoff
+  const retryLimit = 5;        // Maximum number of retry attempts per batch
 
   // Helper function to pause execution
-  const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+  const delay = (ms:number) => new Promise(resolve => setTimeout(resolve, ms));
 
   // Process comments in batches
   for (let i = 0; i < validComments.length; i += batchSize) {
     const batch = validComments.slice(i, i + batchSize);
-    await octokit.pulls.createReview({
-      owner,
-      repo,
-      pull_number,
-      comments: batch,
-      event: "COMMENT",
-    });
+    let attempt = 0;
+    let delayMs = initialDelayMs;
+    let success = false;
 
-    console.log(`Posted ${i+batchSize} comments`)
-    // Pause before posting the next batch if there are any comments left
+    while (!success && attempt < retryLimit) {
+      try {
+        await octokit.pulls.createReview({
+          owner,
+          repo,
+          pull_number,
+          comments: batch,
+          event: "COMMENT",
+        });
+        console.log(`Posted ${i + batch.length} comments`);
+        success = true;
+      } catch (error: any) {
+        attempt++;
+        if (
+          error.status === 403 &&
+          error.response?.data?.message?.includes("secondary rate limit")
+        ) {
+          console.warn(
+            `Secondary rate limit hit. Attempt ${attempt}. Waiting for ${delayMs}ms before retrying.`
+          );
+          await delay(delayMs);
+          delayMs = Math.min(delayMs * 2, maxDelayMs); // exponential backoff
+        } else {
+          throw error; // rethrow if it's not a secondary rate limit issue
+        }
+      }
+    }
+
+    // If there are more batches to process, add a delay before moving to the next one.
     if (i + batchSize < validComments.length) {
-      await delay(delayMs);
+      await delay(initialDelayMs);
     }
   }
 }
-
 
 /**
  * Filters the parsed diff files based on include and exclude patterns.
