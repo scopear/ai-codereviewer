@@ -261,33 +261,29 @@ async function analyzeCode(
  * @returns {string} The generated prompt string for the review task.
  */
 function createPrompt(file: File, chunk: Chunk, prDetails: PRDetails): string {
-  return `Your task is to review pull requests. Instructions:
-- Provide the response in following JSON format:  {"reviews": [{"lineNumber":  <line_number>, "reviewComment": "<review comment>"}]}
-- Do not give positive comments or compliments.
-- Provide comments and suggestions ONLY if there is something to improve, otherwise "reviews" should be an empty array.
-- Write the comment in GitHub Markdown format.
-- Use the given description only for the overall context and only comment the code.
+  return `Your task is to review pull requests with a focus on code logic, design, and maintainability. 
+Instructions:
+- Provide the response in the following JSON format: {"reviews": [{"lineNumber": <line_number>, "reviewComment": "<review comment>"}]}
+- Do not include any positive feedback or compliments.
+- Only provide review comments if there is a non-trivial improvement to be made. Do not comment on issues that would normally be caught by automated linting, compilation, or testing (e.g., missing imports, simple syntax issues, or minor style differences).
+- Write all review comments in GitHub Markdown format.
+- Use the pull request title and description solely for overall context. Only comment on the code itself.
 - IMPORTANT: NEVER suggest adding comments to the code.
 
-Review the following code diff in the file "${
-    file.to
-  }" and take the pull request title and description into account when writing the response.
-  
+Review the following code diff in the file "${file.to}" considering the pull request title and description:
+
 Pull request title: ${prDetails.title}
 Pull request description:
-
 ---
 ${prDetails.description}
 ---
-
 Git diff to review:
-
 \`\`\`diff
 ${chunk.content}
 ${chunk.changes
-  // @ts-expect-error - ln and ln2 exists where needed
-  .map((c) => `${c.ln ? c.ln : c.ln2} ${c.content}`)
-  .join("\n")}
+    // @ts-expect-error - ln and ln2 exists where needed
+    .map((c) => `${c.ln ? c.ln : c.ln2} ${c.content}`)
+    .join("\n")}
 \`\`\`
 `;
 }
@@ -502,6 +498,7 @@ async function main() {
     // We want to log the comments to be posted for debugging purposes, as
     // we see errors when used in the actual workflow but cannot figure out
     // why without seeing these logged comments.
+    console.log(`Posting ${comments.length} comments`)
     comments.forEach((comment) => {
       console.log(
         `Comment to be posted: ${comment.body} at ${comment.path}:${comment.line}`
