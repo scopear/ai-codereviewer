@@ -387,14 +387,30 @@ async function createReviewComment(
     return;
   }
 
-  await octokit.pulls.createReview({
-    owner,
-    repo,
-    pull_number,
-    comments: validComments,
-    event: "COMMENT",
-  });
+  const batchSize = 5; // Number of comments to post per batch
+  const delayMs = 1000; // Delay in milliseconds between batches
+
+  // Helper function to pause execution
+  const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
+  // Process comments in batches
+  for (let i = 0; i < validComments.length; i += batchSize) {
+    const batch = validComments.slice(i, i + batchSize);
+    await octokit.pulls.createReview({
+      owner,
+      repo,
+      pull_number,
+      comments: batch,
+      event: "COMMENT",
+    });
+
+    // Pause before posting the next batch if there are any comments left
+    if (i + batchSize < validComments.length) {
+      await delay(delayMs);
+    }
+  }
 }
+
 
 /**
  * Filters the parsed diff files based on include and exclude patterns.
