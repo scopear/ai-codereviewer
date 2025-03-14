@@ -379,17 +379,17 @@ function createReviewComment(owner, repo, pull_number, comments) {
             console.log("No valid comments to post.");
             return;
         }
-        const batchSize = 3; // Number of comments to post per review
-        const initialDelayMs = 1500; // Starting delay between retries (in ms)
+        const batchSize = 3; // Number of comments per batch
+        const initialDelayMs = 1500; // Initial delay for retries
         const maxDelayMs = 10000; // Maximum delay for exponential backoff
         const retryLimit = 5; // Maximum number of retry attempts per batch
+        let postedCount = 0; // Cumulative count of posted comments
         // Helper function to pause execution
         const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
-        // Process comments in batches
         for (let i = 0; i < validComments.length; i += batchSize) {
             const batch = validComments.slice(i, i + batchSize);
             let attempt = 0;
-            let delayMs = initialDelayMs;
+            let currentDelay = initialDelayMs;
             let success = false;
             while (!success && attempt < retryLimit) {
                 try {
@@ -400,23 +400,29 @@ function createReviewComment(owner, repo, pull_number, comments) {
                         comments: batch,
                         event: "COMMENT",
                     });
-                    console.log(`Posted ${i + batch.length} comments`);
+                    postedCount += batch.length;
+                    console.log(`Successfully posted batch. Total posted: ${postedCount} comments.`);
                     success = true;
                 }
                 catch (error) {
                     attempt++;
                     if (error.status === 403 &&
                         ((_c = (_b = (_a = error.response) === null || _a === void 0 ? void 0 : _a.data) === null || _b === void 0 ? void 0 : _b.message) === null || _c === void 0 ? void 0 : _c.includes("secondary rate limit"))) {
-                        console.warn(`Secondary rate limit hit. Attempt ${attempt}. Waiting for ${delayMs}ms before retrying.`);
-                        yield delay(delayMs);
-                        delayMs = Math.min(delayMs * 2, maxDelayMs); // exponential backoff
+                        console.warn(`Secondary rate limit hit. Attempt ${attempt} for batch starting at index ${i}. Waiting for ${currentDelay}ms before retrying.`);
+                        yield delay(currentDelay);
+                        currentDelay = Math.min(currentDelay * 2, maxDelayMs);
                     }
                     else {
-                        throw error; // rethrow if it's not a secondary rate limit issue
+                        // If the error is something else, rethrow it.
+                        throw error;
                     }
                 }
             }
-            // If there are more batches to process, add a delay before moving to the next one.
+            if (!success) {
+                // After exhausting all attempts, throw an error to halt further processing.
+                throw new Error(`Failed to post review for batch starting at index ${i} after ${retryLimit} attempts.`);
+            }
+            // Optional: add a delay between batches if there are more comments.
             if (i + batchSize < validComments.length) {
                 yield delay(initialDelayMs);
             }
