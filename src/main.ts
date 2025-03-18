@@ -270,6 +270,9 @@ Instructions:
 - Write all review comments in GitHub Markdown format.
 - Use the pull request title and description solely for overall context. Only comment on the code itself.
 - IMPORTANT: NEVER suggest adding comments to the code.
+- Do NOT comment on imports
+- Do NOT comment on method signatures changing.
+- Do NOT tell the user to verify other parts of the codebase when something changes. Linting tools and unit tests will do that.
 
 Review the following code diff in the file "${file.to}" considering the pull request title and description:
 
@@ -277,6 +280,8 @@ Pull request title: ${prDetails.title}
 Pull request description:
 ---
 ${prDetails.description}
+---
+File name: ${file.to}
 ---
 Git diff to review:
 \`\`\`diff
