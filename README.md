@@ -22,7 +22,7 @@ review process.
 3. a. Create a `.github/workflows/main.yml` file in your repository and add the following content, if you want the AI review to trigger on every opened PR and corresponding updates:
 
 ```yaml
-name: CDS AI Code Reviewer
+name: AI Code Reviewer
 
 on:
   pull_request:
@@ -37,8 +37,8 @@ jobs:
       - name: Checkout Repo
         uses: actions/checkout@v3
 
-      - name: CDS AI Code Reviewer
-        uses: cds-snc/cds-ai-code-reviewer@main
+      - name: AI Code Reviewer
+        uses: scopear/ai-codereviewer@main
         with:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # The GITHUB_TOKEN is there by default so you just need to keep it like it is and not necessarily need to add it as secret as it will throw an error. [More Details](https://docs.github.com/en/actions/security-guides/automatic-token-authentication#about-the-github_token-secret)
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
@@ -52,7 +52,7 @@ jobs:
 3. b. For reduced cost with OpenAI, a different configuration is possible on the action. This will be a manual trigger on commits message that contains the `[review]` keyword. The action will process the entirety of the related pull request for which the commit was pushed for. Ideally, you want to use this trigger once when the pull request is ready. Copy the configuration below:
 
 ```yaml
-name: CDS Code Review with OpenAI
+name: Code Review with OpenAI
 on:
   push:
     branches-ignore:
